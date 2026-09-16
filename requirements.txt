@@ -1,0 +1,10 @@
+mediapipe
+opencv-python
+praat-parselmouth
+librosa
+scipy
+numpy
+matplotlib
+pandas
+yt-dlp
+tqdm
