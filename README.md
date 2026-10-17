@@ -1,56 +1,99 @@
 # Gesture-Speech Alignment
 
-A small pilot pipeline testing whether hand gestures (beat gestures) time-align with vocal stress in natural speech. Built out of an interest in analyzing human patterns, using computer vision and audio signal processing as instruments to ask a genuinely scientific question rather than to build a product.
+## Why can't you stop watching a speaker's hands?
+
+You do it without noticing. And many of us wave our hands on phone calls where nobody can see them. Some linguists think that's because speech and gesture aren't two channels but one system in the brain, so the hand and the voice should hit emphasis *at the same moment*.
+
+I tested that on 8 TED talks: 231 hand movements against every moment of vocal stress.
+
+**So far the answer is "can't tell yet": with 8 clips, the hands landed no closer to the stress than random timing would (z = 0.13, p = 0.45), but the data is too small to settle it.** A small real link could easily be hiding in 231 gestures. What this repo delivers is the groundwork: a test that was checked on planted data, a pipeline that handles slides and missed hands, and a clear target of how much more data is needed. It also corrects my own first version, which "found" a perfect 100% match that turned out to be meaningless.
+
+## What this project explores
+
+- **Statistical analysis:** how to test a human-behavior claim properly, and how an easy-looking metric can mislead.
+- **Multimodal communication:** whether the voice and the hands carry emphasis together.
+- **Human psychology:** whether speech and gesture form one integrated system, as David McNeill argued.
 
 ## The question
 
-When a speaker emphasizes a word with their voice, does their hand gesture shift with it? Linguists such as David McNeill have argued gesture and speech form one integrated system rather than two separate channels. This project builds a small, reproducible test of that idea on real talk footage.
+When a speaker stresses a word with their voice, does a hand gesture land at the same moment?
 
 ## How it works
 
-Two signals are extracted in parallel for each clip, then compared.
-
-1. **Prosody (audio side)**, `audio_prosody.py`: extracts pitch (F0) and intensity contours with Parselmouth (a Python wrapper around Praat), then detects local peaks within continuous voiced speech as candidate stress points.
-2. **Gesture (video side)**, `gesture_tracking.py`: tracks hand position frame by frame with MediaPipe's HandLandmarker, computes vertical velocity, and detects local peaks as candidate gesture points, mostly beat gestures.
-3. **Alignment**, `alignment.py`: for every gesture peak, finds the nearest stress peak within a matching window (default 0.5s), records the timing offset, and runs a permutation test that circularly shifts the stress-peak timeline hundreds of times to build a chance-level baseline for comparison.
-
-## Data
-
-8 clips (30 to 90 seconds each) trimmed from TED's "Open Source, Open World" playlist: single speaker, waist-up framing, natural unscripted delivery, clean audio. Clip list is the `clip` column in `per_clip_summary.csv`.
+1. **Voice:** pitch and loudness are extracted (Praat via Parselmouth). A stress point is a pitch peak that coincides with a loudness peak, about one per second.
+2. **Hands:** MediaPipe tracks the wrists. A gesture is an unusually fast hand movement for that speaker.
+3. **Test:** for each gesture, measure the distance to the nearest stress point. Compare with what random timing gives (the stress timeline is slid by a random amount 2000 times). If real gestures sit closer than almost all random slides, there is a link.
+4. **Only when the speaker is on screen:** slides and cutaways are removed, since no gesture can be seen there.
 
 ## Results
 
-Full per-clip numbers are in `per_clip_summary.csv` (attached). Summary below.
+| Clip | Gestures | z | p |
+|---|---|---|---|
+| Clay Shirky | 31 | 0.05 | 0.51 |
+| Massimo Banzi | 23 | -1.66 | 0.95 |
+| Jennifer Pahlka | 37 | -1.70 | 0.97 |
+| Jimmy Wales | 23 | 0.76 | 0.25 |
+| Luis von Ahn | 25 | 1.70 | 0.027 |
+| Amanda Palmer | 25 | 0.13 | 0.48 |
+| Linus Torvalds | 47 | -0.23 | 0.64 |
+| Tim Berners-Lee | 20 | 1.33 | 0.10 |
 
-| Clip | Gesture peaks | Match rate | Chance match rate | p-value | Median offset (ms) | Gesture precedes stress |
-|---|---|---|---|---|---|---|
-| Clay Shirky | 22 | 100% | 100% | 1.00 | -25 | 59% |
-| Massimo Banzi | 3 | 100% | 100% | 1.00 | -50 | 67% |
-| Jennifer Pahlka | 19 | 100% | 100% | 1.00 | -18 | 58% |
-| Jimmy Wales | 1 | 100% | 100% | 1.00 | +197 | 0% |
-| Luis von Ahn | 21 | 100% | 99% | 0.88 | +17 | 43% |
-| Linus Torvalds | 17 | 100% | 99% | 0.83 | +27 | 41% |
-| Amanda Palmer | 15 | 100% | 97% | 0.71 | -10 | 53% |
-| Tim Berners-Lee | 11 | 100% | 100% | 1.00 | +10 | 45% |
+z above 0 means gestures are closer to stress than chance; p near 0.5 means it looks like luck.
 
-## Reading these results honestly
+- **All clips together:** z = 0.13, p = 0.45. Gestures are on average 0.58 s from stress, against 0.60 s for chance.
+- **Effect size:** gestures are 2% closer than chance, with a 95% confidence interval from 11% farther to 15% closer. That includes zero.
+- **One clip looks significant (von Ahn, p = 0.027).** After correcting for testing 8 clips, p = 0.22, so it does not count.
+- **Control:** pairing gestures with a different clip's voice gives z about 0, so the test is not producing false signals.
+- Full numbers: `results/v2_per_clip.csv` and `results/stats_summary.txt`.
 
-The raw match rate is 100% on every clip. On its own that number is not meaningful: the permutation test shows the chance-level match rate is also close to 100% on most clips, and p-values are all well above 0.05. In natural speech, stress peaks (peaks in pitch or loudness) occur frequently enough that almost any gesture timing lands near one by coincidence, given the current 0.5 second matching window. So this pilot does not currently show statistically significant gesture-stress synchrony beyond chance, and that should not be overstated in any writeup.
+## What we tried
 
-What does hold up as a smaller, honest signal is the offset direction: in 6 of 8 clips, gestures tend to arrive before the stressed syllable more often than after it (negative median offset, over 50% precede), which is directionally consistent with the gesture-speech literature. That is the finding worth reporting, framed as a tendency, not as a proven alignment effect.
+- **The first version reported a 100% match rate and was meaningless.** Stress was marked about 4 times per second (roughly every syllable) with a wide time window, so almost any gesture landed near one. A simulation showed that test had zero power: it missed a planted link even when 60% of gestures were locked to stress.
+- **A new test replaced it.** It uses a continuous distance with no window, and was checked on simulated data (about 5% false positives, and it detects planted links).
+- **Stress was made selective** (pitch and loudness peaking together), matching the hand side, which only fires on visible movement.
+- **Slides were removed.** The speaker was on screen only 13–72% of the time in the first pass.
+- **Hand detection was improved**, raising gestures from 109 to 231.
 
-Separately, gesture peak detection itself (does the hand-tracking step correctly flag real hand movement as a peak when actual vocal stress was present) was manually spot-checked against the source video and held up in the 75 to 95% range depending on clip and speaker expressiveness. This is a detector-accuracy number, kept deliberately separate from the alignment claim above.
+Each fix made the method more trustworthy. None produced a significant link, and the earlier weak trend (z about 1.4) disappeared when gestures were detected properly.
+
+## The limit: not enough data
+
+- **231 gestures across 8 clips** gives enough power to detect a fairly strong link (about 0.9 z per clip), not a small one.
+- The confidence interval is wide, so a small real effect could be hiding in it. More clips would narrow it.
+- This does not show more data will find an effect. It shows only that this data cannot settle the question.
+
+## Other limits
+
+- The detector fires on any fast wrist movement, not only beat gestures.
+- Stress is a pitch-and-loudness proxy, with no human labeling.
+- Speaker visibility comes from face and hand detection, which is imperfect.
+- TED speakers are rehearsed, so results may not carry over to casual speech.
+
+## Next steps
+
+More clips and speakers, a human-labeled subset to check both detectors, and a comparison of rehearsed and spontaneous speech.
+
+## Run it
+
+```
+python src/validate_simulation.py   # test sanity check (no video)
+python src/extract_tracks.py        # slow, once: hand tracks for every clip
+python src/run_v2_analysis.py       # per-clip results -> results/v2_per_clip.csv
+python src/stats_summary.py         # group statistics -> results/stats_summary.txt
+```
+
+Clips go in `data/clips/` with matching audio in `data/tmp/` (see `src/download_clips.py` and `src/audio_prosody.py`).
 
 ## Files
 
-- `gesture_tracking.py`, hand tracking and gesture peak detection
-- `audio_prosody.py`, pitch and intensity extraction, stress peak detection (fixed version: peaks are only searched for within continuous voiced audio, not across zero-filled silent gaps, which was inflating stress peak counts in an earlier version)
-- `alignment.py`, peak matching, permutation test, plotting
-- `download_clips.py`, fetches and trims source clips
-- `analysis.ipynb` / `analysis_local.ipynb`, end-to-end run and figures
-- `per_clip_summary.csv`, per-clip results (attached separately below)
-- `*_timeline.png`, per-clip gesture vs stress event timelines
-- `offset_histogram.png`, distribution of gesture-stress timing offsets across all matched peaks
+- `src/audio_prosody.py`: pitch and loudness, stress points
+- `src/gesture_tracking.py`: hand tracking and gesture points
+- `src/visibility.py`: when the speaker is on screen
+- `src/alignment.py`: distance test and permutation null
+- `src/validate_simulation.py`: planted-link check of the test
+- `src/run_v2_analysis.py`, `src/stats_summary.py`: final analysis
+- `results/v2_per_clip.csv`, `results/stats_summary.txt`: final numbers
+- `results/per_clip_summary.csv`: the first, superseded match-rate analysis (kept for reference)
 
 ## Requirements
 
@@ -65,7 +108,3 @@ pandas
 yt-dlp
 tqdm
 ```
-
-## Limitations and next steps
-
-This is a pilot, not a validated study: 8 clips, no manual ground-truth annotation of gesture or stress events, no inter-rater reliability check. Planned next steps: a narrower, principled matching window instead of a fixed 0.5 seconds, a larger and more diverse clip set across speakers and languages, and manual annotation on a subset to validate the automatic detectors against human judgment.

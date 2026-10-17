@@ -1,0 +1,9 @@
+n_gestures,n_matched,match_rate,median_offset_ms,mean_offset_ms,pct_gesture_precedes,chance_match_rate,permutation_p_value,clip
+22,22,1.0,-24.99999999999858,-31.363636363638026,59.09090909090909,1.0,1.0,Clay_Shirky_-_How_cognitive_surplus_will_change_the_world_clip_30s-90s.mp4
+3,3,1.0,-50.00000000000426,-33.33333333333499,66.66666666666666,1.0,1.0,How_Arduino_is_open-sourcing_imagination_Massimo_Banzi_clip_30s-90s.mp4
+19,19,1.0,-18.333333333337976,-1.9298245614064746,57.89473684210527,1.0,1.0,Jennifer_Pahlka_-_Coding_a_better_government_clip_30s-90s.mp4
+1,1,1.0,196.66666666666544,196.66666666666544,0.0,1.0,1.0,Jimmy_Wales_-_How_a_ragtag_band_created_Wikipedia_clip_30s-90s.mp4
+21,21,1.0,16.66666666666572,0.952380952380001,42.857142857142854,0.993904761904762,0.884,Massive-scale_online_collaboration_Luis_von_Ahn_clip_30s-90s.mp4
+17,17,1.0,26.666666666666174,5.392156862742193,41.17647058823529,0.9896470588235295,0.83,The_Mind_Behind_Linux_Linus_Torvalds_TED_clip_30s-90s.mp4
+15,15,1.0,-10.000000000005116,-12.00000000000294,53.333333333333336,0.9716000000000001,0.714,The_art_of_asking_Amanda_Palmer_clip_30s-90s.mp4
+11,11,1.0,9.666666666667822,-29.93030303030315,45.45454545454545,1.0,1.0,Tim_Berners-Lee_-_The_year_open_data_went_worldwide_clip_30s-90s.mp4

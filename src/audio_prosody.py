@@ -79,6 +79,35 @@ def detect_stress_peaks(times, f0, intensity, min_prominence_f0=15.0, min_promin
     return np.array(merged)
 
 
+def detect_salient_stress_peaks(
+    times, f0, intensity,
+    min_prominence_st=1.0,
+    min_prominence_db=3.0,
+    coincidence_s=0.15,
+    min_spacing_s=0.4,
+):
+    """Only perceptually salient stress: an F0 peak (semitones, so speaker-
+    independent) that coincides with an intensity peak, spaced >= min_spacing_s.
+    Mirrors the gesture side, which only fires on visibly large movements."""
+    f0_st = 12.0 * np.log2(np.where(np.isnan(f0), np.nan, f0 / 100.0))
+    f0_idx = []
+    for start, end in _voiced_runs(f0):
+        local, _ = find_peaks(f0_st[start:end + 1], prominence=min_prominence_st)
+        f0_idx.extend(start + local)
+
+    floor = np.nanmin(intensity) if np.any(~np.isnan(intensity)) else 0.0
+    inten_idx, _ = find_peaks(np.nan_to_num(intensity, nan=floor), prominence=min_prominence_db)
+    inten_t = times[inten_idx]
+
+    peaks = []
+    for i in sorted(f0_idx):
+        t = times[i]
+        if len(inten_t) and np.min(np.abs(inten_t - t)) <= coincidence_s:
+            if not peaks or t - peaks[-1] >= min_spacing_s:
+                peaks.append(t)
+    return np.array(peaks)
+
+
 def get_stress_peaks_for_video(video_path: Path, tmp_dir: Path = Path("data/tmp")):
     wav_path = tmp_dir / f"{video_path.stem}.wav"
     extract_audio(video_path, wav_path)

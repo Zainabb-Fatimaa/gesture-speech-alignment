@@ -1,0 +1,41 @@
+CLIPS: 8   total gestures: 231   total stress peaks: 218
+
+1) PER CLIP (one-sided p, then corrected for 8 tests)
+                        clip  n_g     z     p  Holm  BH_FDR
+Clay_Shirky_-_How_cognitive_   31  0.05 0.513 1.000   0.820
+How_Arduino_is_open-sourcing   23 -1.66 0.953 1.000   0.968
+Jennifer_Pahlka_-_Coding_a_b   37 -1.70 0.968 1.000   0.968
+Jimmy_Wales_-_How_a_ragtag_b   23  0.76 0.246 1.000   0.656
+Massive-scale_online_collabo   25  1.70 0.027 0.216   0.216
+The_art_of_asking_Amanda_Pal   25  0.13 0.481 1.000   0.820
+The_Mind_Behind_Linux_Linus_   47 -0.23 0.643 1.000   0.857
+Tim_Berners-Lee_-_The_year_o   20  1.33 0.105 0.735   0.420
+   clips with p<0.05 uncorrected: 1  (expected by luck: 0.4);  after Holm: 0
+
+2) COMBINING CLIPS (H0: no gesture-stress coupling)
+   Stouffer (equal weights):   z=0.13  one-sided p=0.448  two-sided p=0.896
+   Stouffer (weight sqrt(n)):  z=-0.06  one-sided p=0.523
+   Fisher (detects ANY clip effect): chi2=18.4 df=16  p=0.302
+   One-sample t-test on z (mean 0.05, sd 1.25): t=0.10, p(two-sided)=0.919
+   Wilcoxon signed-rank on z: p(two-sided)=0.945
+   Sign test: 5/8 clips positive, p(two-sided)=0.727
+
+3) EFFECT SIZE: how much closer to stress than chance (fraction of the chance distance)
+   mean = +2.4%   95% bootstrap CI over clips = [-11.2%, +15.3%]
+   (0% = no coupling; positive = gestures nearer stress). Mean obs 0.582s vs chance 0.599s
+   mean z = 0.05, 95% t-CI = [-1.00, 1.09]
+
+4) HETEROGENEITY across clips (are clips consistent with one common effect?)
+   Cochran Q=10.9 df=7 p=0.142   I^2=36%
+   (z-scores of a true null should have variance 1; observed var = 1.56)
+
+5) LEAVE-ONE-OUT pooled Stouffer z (does one clip drive it?)
+   -Clay_Shirk: 0.12; -How_Arduin: 0.77; -Jennifer_P: 0.78; -Jimmy_Wale: -0.15; -Massive-sc: -0.50; -The_art_of: 0.09; -The_Mind_B: 0.23; -Tim_Berner: -0.36
+   range: -0.50 to 0.78
+   Spearman(n_gestures, z) = -0.52 (p=0.19); corr(visible%, z) = -0.29
+
+6) SENSITIVITY: what could this design have detected?
+   Pooled z has SD 1 under H0, so 80% power at one-sided 0.05 needs a pooled shift of 2.48,
+   i.e. a mean per-clip z of about 0.88. Observed mean z = 0.05, 95% CI [-1.00, 1.09].
+   The CI upper end (1.09) is above that, so a moderate effect is NOT ruled out with only 8 clips;
+   the data exclude only a large, consistent coupling (mean z/clip well above ~1.1).

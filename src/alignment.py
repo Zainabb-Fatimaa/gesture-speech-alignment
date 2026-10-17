@@ -74,6 +74,42 @@ def permutation_test_match_rate(
     }
 
 
+def nn_distance_test(
+    gesture_peaks: np.ndarray,
+    stress_peaks: np.ndarray,
+    clip_duration: float,
+    n_permutations: int = 2000,
+    rng: np.random.Generator | None = None,
+) -> dict:
+    """Window-free test: are gestures closer to stress peaks than chance?
+
+    Statistic = mean absolute distance from each gesture to its nearest stress
+    peak (continuous, so it cannot saturate the way a binary match rate does).
+    Null = circularly shift the stress timeline. Returns a one-sided p-value
+    (small = gestures sit closer to stress than chance) and a z-score.
+    """
+    if rng is None:
+        rng = np.random.default_rng()
+    g = np.asarray(gesture_peaks, dtype=float)
+    s = np.asarray(stress_peaks, dtype=float)
+    if len(g) == 0 or len(s) == 0:
+        return {"obs_mean_dist": np.nan, "null_mean_dist": np.nan, "z": np.nan, "p_value": np.nan}
+
+    def stat(stress):
+        stress = np.sort(stress)
+        idx = np.clip(np.searchsorted(stress, g), 1, len(stress) - 1) if len(stress) > 1 else np.zeros(len(g), int)
+        if len(stress) == 1:
+            return float(np.mean(np.abs(g - stress[0])))
+        d = np.minimum(np.abs(g - stress[idx - 1]), np.abs(g - stress[idx]))
+        return float(d.mean())
+
+    obs = stat(s)
+    null = np.array([stat(np.mod(s + rng.uniform(0, clip_duration), clip_duration)) for _ in range(n_permutations)])
+    p = float((np.sum(null <= obs) + 1) / (n_permutations + 1))
+    z = float((null.mean() - obs) / null.std()) if null.std() > 0 else np.nan
+    return {"obs_mean_dist": obs, "null_mean_dist": float(null.mean()), "z": z, "p_value": p}
+
+
 def summarize_offsets(df: pd.DataFrame) -> dict:
     matched = df[df["matched"]]
     if len(matched) == 0:
