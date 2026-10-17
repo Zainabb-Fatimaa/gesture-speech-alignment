@@ -1,8 +1,8 @@
 # Gesture-Speech Alignment
 
-## Why can't you stop watching a speaker's hands?
+## Why do we move our hands when we talk?
 
-You do it without noticing. And many of us wave our hands on phone calls where nobody can see them. Some linguists think that's because speech and gesture aren't two channels but one system in the brain, so the hand and the voice should hit emphasis *at the same moment*.
+You do it without noticing. Many of us even gesture on phone calls where nobody can see us. Some linguists think that's because speech and gesture aren't two channels but one system in the brain, so the hand and the voice should hit emphasis *at the same moment*.
 
 I tested that on 8 TED talks: 231 hand movements against every moment of vocal stress.
 
